@@ -1,0 +1,13 @@
+/* src/styles/UserProfile.css */
+.user-profile {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .profile-picture {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
