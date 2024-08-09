@@ -1,3 +1,5 @@
+// src/components/MessageInput.js
+
 import React, { useState } from 'react';
 
 function MessageInput({ onSendMessage }) {

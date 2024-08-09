@@ -1,4 +1,4 @@
-// src/SearchUsers.js
+// src/components/SearchUsers.js
 
 import React, { useState } from 'react';
 
@@ -17,7 +17,7 @@ function SearchUsers({ onSelectUser }) {
           const data = await response.json();
           setResults(data.results);
         } else {
-          console.error('Failed to search users');
+          console.error('Failed to search users:', response.statusText);
         }
       } catch (err) {
         console.error('Error searching users:', err);
