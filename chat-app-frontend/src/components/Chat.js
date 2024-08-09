@@ -3,21 +3,21 @@ import '../styles/Chat.css';
 import ContactList from './ContactList';
 import MessageInput from './MessageInput';
 import MessageList from './MessageList';
+import SearchUsers from './SearchUsers';
 
 function Chat() {
   const [contacts, setContacts] = useState([]);
-  const [messages, setMessages] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     async function fetchContacts() {
       try {
-        const response = await fetch('http://localhost:5001/api/contacts', {
+        const response = await fetch('http://localhost:5000/api/contacts', {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
         });
         if (response.ok) {
           const data = await response.json();
@@ -32,12 +32,14 @@ function Chat() {
 
     async function fetchCurrentUser() {
       try {
-        const response = await fetch('http://localhost:5001/api/profile', {
+        const response = await fetch('http://localhost:5000/api/profile', {
           method: 'GET',
+          credentials: 'include',
         });
         if (response.ok) {
           const data = await response.json();
           setCurrentUser(data.profile);
+          await fetchContacts(); // Fetch contacts after getting the profile
         } else {
           console.error('Failed to fetch current user');
         }
@@ -46,7 +48,6 @@ function Chat() {
       }
     }
 
-    fetchContacts();
     fetchCurrentUser();
   }, []);
 
@@ -54,8 +55,9 @@ function Chat() {
     if (selectedContact) {
       async function fetchMessages() {
         try {
-          const response = await fetch(`http://localhost:5001/api/messages/${selectedContact.id}`, {
+          const response = await fetch(`http://localhost:5000/api/messages/${selectedContact.id}`, {
             method: 'GET',
+            credentials: 'include',
           });
           if (response.ok) {
             const data = await response.json();
@@ -74,12 +76,11 @@ function Chat() {
   const handleSendMessage = async (content) => {
     if (selectedContact && content.trim()) {
       try {
-        const response = await fetch('http://localhost:5001/api/messages', {
+        const response = await fetch('http://localhost:5000/api/messages', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ recipient_id: selectedContact.id, content, sender_id: currentUser.id }),
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ recipient_id: selectedContact.id, content }),
         });
         if (response.ok) {
           const newMessage = await response.json();
@@ -93,8 +94,30 @@ function Chat() {
     }
   };
 
+  const handleAddContact = async (user) => {
+    if (currentUser) {
+      try {
+        const response = await fetch('http://localhost:5000/api/contacts/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ userId: currentUser.id, contactId: user.id }),
+        });
+        if (response.ok) {
+          const newContact = await response.json();
+          setContacts([...contacts, newContact.contact]);
+        } else {
+          console.error('Failed to add contact');
+        }
+      } catch (err) {
+        console.error('Failed to add contact:', err);
+      }
+    }
+  };
+
   return (
     <div className="chat-container">
+      <SearchUsers onSelectUser={handleAddContact} />
       <ContactList contacts={contacts} onSelectContact={setSelectedContact} />
       <div className="chat-window">
         {selectedContact ? (
